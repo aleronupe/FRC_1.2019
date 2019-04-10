@@ -8,7 +8,7 @@
 #include <netinet/in.h> //Precisa?
 #include <arpa/inet.h>
 #define MAXLINE 1024
-#define PORT 8080
+#define PORT 123
 
 typedef struct {
   uint8_t li_vn_mode;      // Eight bits. li, vn, and mode.
@@ -44,20 +44,20 @@ int main(int argc, char *argv[]) {
     //Setando a mensagem de requisição
     reqMessage = calloc(1, sizeof(ntpPacket));
     reqMessage->li_vn_mode = 0x1B;  //li =0, vn = 3 e mode = 3 | li = 00, vn = 011, mode = 011   
-    // reqMessage.stratum = 0x00;         
-    // reqMessage.poll = 0x00;            
-    // reqMessage.precision = 0x00000000;       
-    // reqMessage.rootDelay = 0x00000000;      
-    // reqMessage.rootDispersion = 0x00000000; 
-    // reqMessage.refId = 0x00000000;          
-    // reqMessage.refTm_s = 0x00000000;        
-    // reqMessage.refTm_f = 0x00000000;        
-    // reqMessage.origTm_s = 0x00000000;      
-    // reqMessage.origTm_f = 0x00000000;       
-    // reqMessage.rxTm_s = 0x00000000;         
-    // reqMessage.rxTm_f = 0x00000000;         
-    // reqMessage.txTm_s = 0x00000000;       
-    // reqMessage.txTm_f = 0x00000000;  
+    reqMessage->stratum = 0x00;         
+    reqMessage->poll = 0x00;            
+    reqMessage->precision = 0x00000000;       
+    reqMessage->rootDelay = 0x00000000;      
+    reqMessage->rootDispersion = 0x00000000; 
+    reqMessage->refId = 0x00000000;          
+    reqMessage->refTm_s = 0x00000000;        
+    reqMessage->refTm_f = 0x00000000;        
+    reqMessage->origTm_s = 0x00000000;      
+    reqMessage->origTm_f = 0x00000000;       
+    reqMessage->rxTm_s = 0x00000000;         
+    reqMessage->rxTm_f = 0x00000000;         
+    reqMessage->txTm_s = 0x00000000;       
+    reqMessage->txTm_f = 0x00000000;  
 
     //Abre socket -----------------------------------------------------------------
     if ( (thisSocket = socket(PF_INET, SOCK_DGRAM, 0)) < 0) {
@@ -66,19 +66,20 @@ int main(int argc, char *argv[]) {
     }
       
     // Filling server information 
-    servaddr.sin_family = AF_INET; 
+    servaddr.sin_family = PF_INET; 
     servaddr.sin_addr.s_addr = inet_addr(ipAdress); 
     servaddr.sin_port = htons(PORT);
     //-----------------------------------------------------------------------------
       
-    int n, len; 
+    int n;
+    socklen_t server_addr_len; 
       
     //Envia mensagem ------------------
     sendto(thisSocket, (const ntpPacket *) reqMessage, sizeof(ntpPacket), 0, (const struct sockaddr *) &servaddr, sizeof(servaddr)); 
     printf("Message sent.\n"); 
           
     //Recebe Retorno -------------------
-    n = recvfrom(thisSocket, (char *) buffer, MAXLINE, MSG_WAITALL, (struct sockaddr *) &servaddr, &len); 
+    n = recvfrom(thisSocket, (char *) buffer, MAXLINE, 0, (struct sockaddr *) &servaddr, &server_addr_len); 
     buffer[n] = '\0'; 
     printf("Server : %s\n", buffer); 
   
