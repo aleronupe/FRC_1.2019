@@ -2,9 +2,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h> //Precisa?
+#include <arpa/inet.h>
+#define MAXLINE 1024
+#define PORT 8080
 
 typedef struct {
   uint8_t li_vn_mode;      // Eight bits. li, vn, and mode.
@@ -31,34 +35,55 @@ int main(int argc, char *argv[]) {
 
     
     char *ipAdress = argv[1]; //Armazenamento do endereço de IP
-    ntpPacket reqMessage; //Cria pacote de mensagem
-    int thisSocket;
+    ntpPacket *reqMessage; //Cria pacote de mensagem
+    int thisSocket; //Declara informação do Socker
+    struct sockaddr_in servaddr;
+    char buffer[MAXLINE];
 
 
     //Setando a mensagem de requisição
-    reqMessage.li_vn_mode = 0x1B;  //li =0, vn = 3 e mode = 3 | li = 00, vn = 011, mode = 011   
-    reqMessage.stratum = 0x00;         
-    reqMessage.poll = 0x00;            
-    reqMessage.precision = 0x00000000;       
-    reqMessage.rootDelay = 0x00000000;      
-    reqMessage.rootDispersion = 0x00000000; 
-    reqMessage.refId = 0x00000000;          
-    reqMessage.refTm_s = 0x00000000;        
-    reqMessage.refTm_f = 0x00000000;        
-    reqMessage.origTm_s = 0x00000000;      
-    reqMessage.origTm_f = 0x00000000;       
-    reqMessage.rxTm_s = 0x00000000;         
-    reqMessage.rxTm_f = 0x00000000;         
-    reqMessage.txTm_s = 0x00000000;       
-    reqMessage.txTm_f = 0x00000000;  
+    reqMessage = calloc(1, sizeof(ntpPacket));
+    reqMessage->li_vn_mode = 0x1B;  //li =0, vn = 3 e mode = 3 | li = 00, vn = 011, mode = 011   
+    // reqMessage.stratum = 0x00;         
+    // reqMessage.poll = 0x00;            
+    // reqMessage.precision = 0x00000000;       
+    // reqMessage.rootDelay = 0x00000000;      
+    // reqMessage.rootDispersion = 0x00000000; 
+    // reqMessage.refId = 0x00000000;          
+    // reqMessage.refTm_s = 0x00000000;        
+    // reqMessage.refTm_f = 0x00000000;        
+    // reqMessage.origTm_s = 0x00000000;      
+    // reqMessage.origTm_f = 0x00000000;       
+    // reqMessage.rxTm_s = 0x00000000;         
+    // reqMessage.rxTm_f = 0x00000000;         
+    // reqMessage.txTm_s = 0x00000000;       
+    // reqMessage.txTm_f = 0x00000000;  
 
+    //Abre socket -----------------------------------------------------------------
     if ( (thisSocket = socket(PF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("socket creation failed"); 
         exit(EXIT_FAILURE); 
     }
+      
+    // Filling server information 
+    servaddr.sin_family = AF_INET; 
+    servaddr.sin_addr.s_addr = inet_addr(ipAdress); 
+    servaddr.sin_port = htons(PORT);
+    //-----------------------------------------------------------------------------
+      
+    int n, len; 
+      
+    //Envia mensagem ------------------
+    sendto(thisSocket, (const ntpPacket *) reqMessage, sizeof(ntpPacket), 0, (const struct sockaddr *) &servaddr, sizeof(servaddr)); 
+    printf("Message sent.\n"); 
+          
+    //Recebe Retorno -------------------
+    n = recvfrom(thisSocket, (char *) buffer, MAXLINE, MSG_WAITALL, (struct sockaddr *) &servaddr, &len); 
+    buffer[n] = '\0'; 
+    printf("Server : %s\n", buffer); 
+  
+    close(thisSocket);
 
 
 
-
-    return 0;
-}
+  return 0;}
