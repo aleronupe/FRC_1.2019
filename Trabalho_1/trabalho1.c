@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h> //Precisa?
 
 typedef struct {
   uint8_t li_vn_mode;      // Eight bits. li, vn, and mode.
@@ -25,15 +28,12 @@ typedef struct {
 } ntpPacket;              // Total: 384 bits or 48 bytes.
 
 int main(int argc, char *argv[]) {
-    // printf("Número de argumentos: %d\n", argc);
-    // for(int cont = 0; cont < argc; cont++){
-    //     printf("%dº = %s\n", cont, argv[cont]);
-    // }
 
-    char *ipAdress = argv[1];
-    // printf("ip Adress: %s\n", ipAdress);
+    
+    char *ipAdress = argv[1]; //Armazenamento do endereço de IP
+    ntpPacket reqMessage; //Cria pacote de mensagem
+    int thisSocket;
 
-    ntpPacket reqMessage;
 
     //Setando a mensagem de requisição
     reqMessage.li_vn_mode = 0x1B;  //li =0, vn = 3 e mode = 3 | li = 00, vn = 011, mode = 011   
@@ -49,8 +49,15 @@ int main(int argc, char *argv[]) {
     reqMessage.origTm_f = 0x00000000;       
     reqMessage.rxTm_s = 0x00000000;         
     reqMessage.rxTm_f = 0x00000000;         
-    reqMessage.txTm_s = 0x00000000;        
+    reqMessage.txTm_s = 0x00000000;       
     reqMessage.txTm_f = 0x00000000;  
+
+    if ( (thisSocket = socket(PF_INET, SOCK_DGRAM, 0)) < 0) {
+        perror("socket creation failed"); 
+        exit(EXIT_FAILURE); 
+    }
+
+
 
 
     return 0;
