@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
     ntpPacket *reqMessage; //Cria pacote de mensagem
     int thisSocket; //Declara informação do Socker
     struct sockaddr_in servaddr;
-    struct timeval timeout={60,0};
+    struct timeval timeout={20,0};
     int flag_timeout = 0;
     
 
