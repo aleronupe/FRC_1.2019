@@ -86,13 +86,16 @@ int main(int argc, char *argv[]) {
 
     //Envia mensagem ------------------
     sendto(thisSocket, (const ntpPacket *) reqMessage, sizeof(ntpPacket), 0, (const struct sockaddr *) &servaddr, sizeof(servaddr)); 
-    printf("Message sent.\n"); 
+    printf("Requisição Enviada.\n"); 
 
     //Recebe Retorno -------------------
     n = recvfrom(thisSocket, (ntpPacket *) reqMessage, sizeof(ntpPacket), 0, (struct sockaddr *) &servaddr, &server_addr_len); 
     
     if ( n < 0 ){
       printf( "Timeout atingido. Tentando receber informação novamente.\n" );
+      
+      sendto(thisSocket, (const ntpPacket *) reqMessage, sizeof(ntpPacket), 0, (const struct sockaddr *) &servaddr, sizeof(servaddr)); 
+      printf("Segunda Tentativa.\n"); 
       int new_n = recvfrom(thisSocket, (ntpPacket *) reqMessage, sizeof(ntpPacket), 0, (struct sockaddr *) &servaddr, &server_addr_len); 
       if(new_n < 0){
         printf("Data/hora: não foi possível contactar servidor\n");
